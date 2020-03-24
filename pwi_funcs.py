@@ -226,7 +226,7 @@ def total_change(args):
     if np.max(sig) < 20: return 0
     
     if not 5 < np.argmax(sig): return 0
-    peaks, properties = find_peaks(sig, height=30, prominence=15, width=5, rel_height=1)
+    peaks, properties = find_peaks(sig, height=35, prominence=15, width=5, rel_height=1)
     if len(peaks) != 1: return 0
 
     #kur = kurtosis(sig, fisher=True)
