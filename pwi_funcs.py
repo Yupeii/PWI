@@ -13,7 +13,7 @@ from scipy import interpolate
 from scipy.stats import kurtosis
 from scipy.linalg import circulant
 from scipy.signal import find_peaks
-from scipy.interpolate import splev, splrep
+from scipy.interpolate import splev, splrep, BSpline
 from scipy.ndimage.filters import gaussian_filter
 
 
@@ -110,8 +110,11 @@ def interp_bsplime(args):
     # if mask == 0: return np.zeros(len(times_new), dtype=np.int16)
     mask = np.array([mask]*sig.shape[0])
     sig  = sig*mask
-    sp1 = splrep(times, sig, s = 0)
-    sig_interp = splev(times_new, sp1)
+    t, c, k = splrep(times, sig, s = 0)
+#     sig_interp = splev(times_new, sp1)
+
+    spline = BSpline(t, c, k)
+    sig_interp = spline(times_new)
     return sig_interp
 
 def interpolation(arr, mask, dt, n_slices):
@@ -137,19 +140,17 @@ def interpolation(arr, mask, dt, n_slices):
             continue
 
     [nz, nx, ny] = mask.shape
-
+    
     # run interpolation with multiprocessing
-    print('Interpolating to 1 seconds virtual sampling rate')
     args = [(arr_interp[:,z,x,y], times, times_new, mask[z,x,y]) for z in range(nz) for x in range(nx) for y in range(ny)]
     arr_interp = multi_proc(interp_bsplime, args, 10)
-
+    print(np.min(arr_interp), np.max(arr_interp))
     # convert result to array
     print('Done, converting result to array...')
     nt = len(times_new)
-    arr_interp = np.array(arr_interp).reshape(nz,nx,ny,nt) #.astype(np.int16)
+    arr_interp = np.array(arr_interp).reshape(nz,nx,ny,nt) 
     arr_interp = np.moveaxis(arr_interp, -1, 0)
     [nt,nz,nx,ny] = arr_interp.shape
-    print('Done, shape:',arr_interp.shape, 'dtype:',arr_interp.dtype)
     return arr_interp
 
 
