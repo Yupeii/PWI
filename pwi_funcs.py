@@ -6,6 +6,7 @@ import numpy as np
 import cv2 as cv
 import SimpleITK as sitk
 import matplotlib.pyplot as plt
+import matplotlib.colors as col
 
 import math
 from pylab import *
@@ -111,8 +112,6 @@ def interp_bsplime(args):
     mask = np.array([mask]*sig.shape[0])
     sig  = sig*mask
     t, c, k = splrep(times, sig, s = 0)
-#     sig_interp = splev(times_new, sp1)
-
     spline = BSpline(t, c, k)
     sig_interp = spline(times_new)
     return sig_interp
@@ -252,7 +251,6 @@ def get_invAIF(aif, lamb):
     return invAIF
 
 
-
 def ctSVD(arg):
     [invAIF, tac] = arg
     l = len(tac)
@@ -260,55 +258,52 @@ def ctSVD(arg):
     return invAIF.dot(tac)[0:l]
 
 
+def plot_maps(arr, slice_i, plot_path, CBF, CBV, MTT, Tmax, penumbra):
+    # plot feature maps and penumbra
+    fig, ax = plt.subplots(2,3,figsize=(25,10))
+    cbar = ['blue','cyan','green','orange','red']
 
-def plot_maps(arr, slice_i, plot_path, LO, HI, CBF, CBV, MTT, TTP, Tmax, core, penumbra):
-    fig, ax = plt.subplots(2,4,figsize=(25,10))
-    cm="jet"
-    cm_r = "jet_r"
-    cax = ax[0,0].imshow(np.clip(arr[0,slice_i,:,:], LO, HI), cmap='gray')
+    ct = col.LinearSegmentedColormap.from_list('ct',cbar)
+    cbar.reverse()
+    ct_r = col.LinearSegmentedColormap.from_list('ct_r',cbar)
+    cm.register_cmap(cmap=ct)
+    cm.register_cmap(cmap=ct_r)
+
+    cax = ax[0,0].imshow(arr[0,slice_i,:,:], cmap='gray')
     fig.colorbar(cax, ax=ax[0,0])
-    ax[0,0].set_title('Raw_'+str(slice_i))
+    ax[0,0].set_title('Base')
     ax[0,0].axis('off')
 
-    cax = ax[0,1].imshow(CBF[slice_i,:,:], cmap=cm)
+    cax = ax[0,1].imshow(CBF[slice_i,:,:], cmap='jet')
     fig.colorbar(cax, ax=ax[0,1])
-    ax[0,1].set_title('CBF_'+str(slice_i))
+    ax[0,1].set_title('CBF')
     ax[0,1].axis('off')
 
-    cax = ax[0,2].imshow(CBV[slice_i,:,:], cmap=cm)
+    cax = ax[0,2].imshow(CBV[slice_i,:,:], cmap='jet')
     fig.colorbar(cax, ax=ax[0,2])
-    ax[0,2].set_title('CBV_'+str(slice_i))
+    ax[0,2].set_title('CBV')
     ax[0,2].axis('off')
 
-    cax = ax[0,3].imshow(core[slice_i,:,:], cmap=cm)
-    fig.colorbar(cax, ax=ax[0,3])
-    ax[0,3].set_title('Core_'+str(slice_i))
-    ax[0,3].axis('off')
-
-    cax = ax[1,0].imshow(MTT[slice_i,:,:], cmap=cm_r)
+    cax = ax[1,0].imshow(MTT[slice_i,:,:], cmap='jet_r')
     fig.colorbar(cax, ax=ax[1,0])
-    ax[1,0].set_title('MTT_'+str(slice_i))
+    ax[1,0].set_title('MTT')
     ax[1,0].axis('off')
 
-    cax = ax[1,1].imshow(TTP[slice_i,:,:], cmap=cm_r)
+    cax = ax[1,1].imshow(Tmax[slice_i,:,:], cmap='jet_r') 
     fig.colorbar(cax, ax=ax[1,1])
-    ax[1,1].set_title('TTP_'+str(slice_i))
+    ax[1,1].set_title('Tmax')
     ax[1,1].axis('off')
 
-    cax = ax[1,2].imshow(Tmax[slice_i,:,:], cmap=cm_r)
+    cax = ax[1,2].imshow(penumbra[slice_i,:,:], cmap='jet_r') 
     fig.colorbar(cax, ax=ax[1,2])
-    ax[1,2].set_title('Tmax_'+str(slice_i))
+    ax[1,2].set_title('Penumbra')
     ax[1,2].axis('off')
 
-    cax = ax[1,3].imshow(penumbra[slice_i,:,:], cmap=cm_r)
-    fig.colorbar(cax, ax=ax[1,3])
-    ax[1,3].set_title('Penumbra_'+str(slice_i))
-    ax[1,3].axis('off')
+    fig.savefig(plot_path+str(slice_i)+".png")
+    plt.show()
+    plt.close()    
 
-    fig.savefig(plot_path+"_"+str(slice_i)+".png")
-    # plt.show()
-    plt.close()
-
+    
 
 #         def MyMedianAverage(inputs,width):
 #             w = width//2
