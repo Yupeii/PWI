@@ -258,7 +258,7 @@ def ctSVD(arg):
     return invAIF.dot(tac)[0:l]
 
 
-def plot_maps(arr, slice_i, plot_path, CBF, CBV, MTT, Tmax, penumbra):
+def plot_maps(base, slice_i, plot_path, CBF, CBV, MTT, Tmax, penumbra):
     # plot feature maps and penumbra
     fig, ax = plt.subplots(2,3,figsize=(25,10))
     cbar = ['blue','cyan','green','orange','red']
@@ -269,7 +269,7 @@ def plot_maps(arr, slice_i, plot_path, CBF, CBV, MTT, Tmax, penumbra):
     cm.register_cmap(cmap=ct)
     cm.register_cmap(cmap=ct_r)
 
-    cax = ax[0,0].imshow(arr[0,slice_i,:,:], cmap='gray')
+    cax = ax[0,0].imshow(base[slice_i,:,:], cmap='gray')
     fig.colorbar(cax, ax=ax[0,0])
     ax[0,0].set_title('Base')
     ax[0,0].axis('off')
